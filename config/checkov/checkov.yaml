@@ -1,0 +1,8 @@
+skip-check:
+  - CKV_DOCKER_2   # Healthcheck definido en K8s
+  - CKV_DOCKER_3   # No pinning de versiones (controlado)
+framework:
+  - dockerfile
+  - secrets
+quiet: false
+soft-fail: true

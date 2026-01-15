@@ -1,0 +1,14 @@
+format: table
+exit-code: 1
+severity:
+  - CRITICAL
+  - HIGH
+ignore-unfixed: true
+
+security-checks:
+  - vuln
+  - secret
+  - config
+
+# secret:
+#   config: config/trivy/secret.yaml
