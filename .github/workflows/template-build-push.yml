@@ -94,51 +94,49 @@ jobs:
           image-ref: local-scan:${{ env.IMAGE_TAG_SHA }}
           format: 'json'
           output: 'trivy-results.json'
-          config: './config/trivy/trivy.yaml' 
+          trivy-config: './config/trivy/trivy.yaml' 
           ignore-unfixed: false
           timeout: '300s'
 
+      - name: 📊 Generate vulnerability report
+        run: |
+          echo "## 🔍 Vulnerability Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
-      # - name: stp-SummaryVulnerabilities
-      #   working-directory: ./trivy-report
-      #   run: |
-      #     echo "## 🐳 Reporte de Escaneo - Trivy" >> $GITHUB_STEP_SUMMARY
-      #     echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f trivy-results.json ]; then
+            TOTAL=$(jq '[.Results[] | (.Vulnerabilities // []), (.Misconfigurations // []), (.Secrets // [])] | flatten | length' trivy-results.json || echo 0)
+            CRIT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json || echo 0)
+            HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json || echo 0)
+            MED=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-results.json || echo 0)
+            LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-results.json || echo 0)
+            MIS=$(jq '[.Results[]?.Misconfigurations[]?] | length' trivy-results.json || echo 0)
+            SECRETS=$(jq '[.Results[]?.Secrets[]?] | length' trivy-results.json || echo 0)
 
-      #     if [ -f trivy-results.json ]; then
-      #       TOTAL=$(jq '[.Results[] | (.Vulnerabilities // []), (.Misconfigurations // []), (.Secrets // [])] | flatten | length' trivy-results.json || echo 0)
-      #       CRIT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json || echo 0)
-      #       HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json || echo 0)
-      #       MED=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-results.json || echo 0)
-      #       LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-results.json || echo 0)
-      #       MIS=$(jq '[.Results[]?.Misconfigurations[]?] | length' trivy-results.json || echo 0)
-      #       SECRETS=$(jq '[.Results[]?.Secrets[]?] | length' trivy-results.json || echo 0)
+            echo "### 📈 Security Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+            [ "$CRIT" -gt 0 ] && echo "| Vulnerabilities | 🔴 CRITICAL | $CRIT |" >> $GITHUB_STEP_SUMMARY
+            [ "$HIGH" -gt 0 ] && echo "| Vulnerabilities | 🟠 HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            [ "$MED" -gt 0 ] && echo "| Vulnerabilities | 🟡 MEDIUM | $MED |" >> $GITHUB_STEP_SUMMARY
+            [ "$LOW" -gt 0 ] && echo "| Vulnerabilities | 🔵 LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
+            [ "$MIS" -gt 0 ] && echo "| MISCONFIGURATIONS | - | $MIS |" >> $GITHUB_STEP_SUMMARY
+            [ "$SECRETS" -gt 0 ] && echo "| Secrets | - | $SECRETS |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Total** | - | **$TOTAL** |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
 
-      #       echo "### 📊 Resumen General" >> $GITHUB_STEP_SUMMARY
-      #       echo "" >> $GITHUB_STEP_SUMMARY
-      #       echo "| Tipo | Severidad | Cantidad |" >> $GITHUB_STEP_SUMMARY
-      #       echo "|------|-----------|----------|" >> $GITHUB_STEP_SUMMARY
-      #       [ "$CRIT" -gt 0 ] && echo "| Vulnerabilidades | 🔴 CRÍTICA | $CRIT |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$HIGH" -gt 0 ] && echo "| Vulnerabilidades | 🟠 ALTA | $HIGH |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$MED" -gt 0 ] && echo "| Vulnerabilidades | 🟡 MEDIA | $MED |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$LOW" -gt 0 ] && echo "| Vulnerabilidades | 🔵 BAJA | $LOW |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$MIS" -gt 0 ] && echo "| Configuraciones | - | $MIS |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$SECRETS" -gt 0 ] && echo "| Secretos | - | $SECRETS |" >> $GITHUB_STEP_SUMMARY
-      #       echo "| **Total** | - | **$TOTAL** |" >> $GITHUB_STEP_SUMMARY
-      #       echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📋 Scan Information" >> $GITHUB_STEP_SUMMARY
+            echo "- **Scan Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+            echo "- **Source Branch:** ${{ github.head_ref || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
 
-      #       echo "### 📋 Metadatos" >> $GITHUB_STEP_SUMMARY
-      #       echo "- **Fecha del escaneo:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-      #       echo "- **Rama:** ${{ github.head_ref || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-      #       echo "- **Repositorio:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
-
-      #       if [ "$TOTAL" -eq 0 ]; then
-      #         echo "" >> $GITHUB_STEP_SUMMARY
-      #         echo "✅ **No se encontraron vulnerabilidades.**" >> $GITHUB_STEP_SUMMARY
-      #       fi
-      #     else
-      #       echo "⚠️ **No se encontró el archivo de resultados de Trivy**" >> $GITHUB_STEP_SUMMARY
-      #     fi
+            if [ "$TOTAL" -eq 0 ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **No security vulnerabilities detected.**" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ **No Trivy results found**" >> $GITHUB_STEP_SUMMARY
+          fi
 
       # - name: stp-ListVulnerabilities
       #   working-directory: ./trivy-report
