@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       image:
-        description: "Specific image variant to build"
+        description: "Specific image folder to build"
         type: choice
         required: true
         default: "base"
