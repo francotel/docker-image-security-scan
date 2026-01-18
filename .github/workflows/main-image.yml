@@ -1,0 +1,40 @@
+name: docker-images-security-pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Specific image variant to build"
+        type: choice
+        required: true
+        default: "base"
+        options:
+          - base
+          - ingress
+
+      target_env:
+        description: "Target deployment environment"
+        type: choice
+        required: true
+        default: "dev"
+        options:
+          - dev
+          - stg
+          - prd
+
+jobs:
+  build_and_scan_development:
+    name: 🚀 Build & Scan (Dev)
+    if: inputs.target_env == 'dev'
+    uses: ./.github/workflows/template-build-push.yml
+    with:
+      image: ${{ inputs.image }}
+      target_env: ${{ inputs.target_env }}
+      dockerfile_path: "docker/${{ inputs.image }}/Dockerfile"
+      aws_ecr_registry: "${{ vars.AWS_ECR_REGISTRY_DEV }}"
+    secrets:
+      # AWS credentials for development environment
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+
