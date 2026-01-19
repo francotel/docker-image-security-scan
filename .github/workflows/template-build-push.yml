@@ -139,7 +139,6 @@ jobs:
           fi
 
       - name: List Vulnerabilities
-        working-directory: ./trivy-report
         run: |
           echo "### 🔍 Vulnerability Details" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
