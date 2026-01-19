@@ -1,4 +1,4 @@
-FROM nginx:1.21-alpine
+FROM nginx:1.29-alpine
 
 LABEL name="nginx-base"
 LABEL description="Base nginx image hardened"

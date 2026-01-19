@@ -188,10 +188,6 @@ jobs:
           output_format: github_failed_only
           output_file_path: .
 
-      - name: 📋 list files
-        run: |
-          ls -la
-
       - name: 📋 Generate configuration report
         run: |
           echo "---" >> $GITHUB_STEP_SUMMARY
@@ -220,8 +216,6 @@ jobs:
           if [ -f trivy-results.json ]; then
             TRIVY_ISSUES=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL" or .Severity=="HIGH")] | length' trivy-results.json 2>/dev/null || echo 0)
           fi
-
-          echo $TRIVY_ISSUES
 
           # Count Checkov issues
           CHECKOV_ISSUES=0
