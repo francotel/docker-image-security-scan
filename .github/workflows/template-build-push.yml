@@ -17,11 +17,6 @@ on:
         type: string
         required: true
         description: "Target environment (dev, stg, prd)"
-      
-      aws_ecr_registry:
-        type: string
-        required: true
-        description: "AWS ECR registry URL"
     
     secrets:
       # AWS credentials
@@ -30,6 +25,8 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
       AWS_REGION:
+        required: true
+      AWS_ECR_URL:
         required: true
 
 env:
@@ -261,8 +258,8 @@ jobs:
           push: false
           no-cache: true
           tags: |
-            ${{ inputs.aws_ecr_registry }}/${{ inputs.image }}:${{ env.IMAGE_TAG_SHA }}
-            ${{ inputs.aws_ecr_registry }}/${{ inputs.image }}:${{ env.IMAGE_TAG_ENV }}
+            ${{ secrets.AWS_ECR_URL }}/${{ inputs.image }}:${{ env.IMAGE_TAG_SHA }}
+            ${{ secrets.AWS_ECR_URL }}/${{ inputs.image }}:${{ env.IMAGE_TAG_ENV }}
           labels: |
             com.github.repository=${{ github.repository }}
             com.github.commit=${{ github.sha }}
