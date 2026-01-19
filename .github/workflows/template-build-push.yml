@@ -218,7 +218,7 @@ jobs:
           # Count Trivy issues
           TRIVY_ISSUES=0
           if [ -f trivy-results.json ]; then
-            TRIVY_ISSUES=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL" or .Severity=="HIGH")] | length' ./trivy-report/trivy-results.json 2>/dev/null || echo 0)
+            TRIVY_ISSUES=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL" or .Severity=="HIGH")] | length' trivy-results.json 2>/dev/null || echo 0)
           fi
 
           echo $TRIVY_ISSUES
@@ -258,24 +258,24 @@ jobs:
           echo "🚀 Proceeding with image publication..."
 
       # ============ PUSH TO AWS ECR ============
-      # - name: 🚀 Build and push to AWS ECR
-      #   if: success() && steps.security-validation.outcome == 'success'
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     context: .
-      #     file: ${{ inputs.dockerfile_path }}
-      #     push: false
-      #     no-cache: true
-      #     tags: |
-      #       ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
-      #       ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_ENV }}
-      #     labels: |
-      #       com.github.repository=${{ github.repository }}
-      #       com.github.commit=${{ github.sha }}
-      #       com.github.workflow=${{ github.workflow }}
-      #       com.build.timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-      #       com.environment=${{ inputs.target_env }}
-      #       com.aws.region=${{ secrets.AWS_REGION }}
+      - name: 🚀 Build and push to AWS ECR
+        if: success() && steps.security-validation.outcome == 'success'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ inputs.dockerfile_path }}
+          push: false
+          no-cache: true
+          tags: |
+            ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
+            ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_ENV }}
+          labels: |
+            com.github.repository=${{ github.repository }}
+            com.github.commit=${{ github.sha }}
+            com.github.workflow=${{ github.workflow }}
+            com.build.timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            com.environment=${{ inputs.target_env }}
+            com.aws.region=${{ secrets.AWS_REGION }}
 
       # ============ CLEANUP ============
       - name: 🧹 Cleanup temporary resources
