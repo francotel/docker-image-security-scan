@@ -189,30 +189,21 @@ jobs:
           framework: dockerfile
           config_file: ./config/checkov/checkov.yaml
           output_format: github_failed_only
-          #output_file_path: .
 
-      # # ============ ESCANEO DE SEGURIDAD - CHECKOV ============
-      # - name: stp-CheckovScan
-      #   run: |
-      #     echo "🔎 Escaneando Dockerfile con Checkov..."
 
-  
-      #       --output-file /src/checkov-report
-
-      # - name: stp-CheckovReportSummary
-      #   id: checkov-report
-      #   run: |
-      #     echo "---" >> $GITHUB_STEP_SUMMARY
-      #     echo "## 🏗️ Reporte de Escaneo - Checkov" >> $GITHUB_STEP_SUMMARY
-      #     echo "" >> $GITHUB_STEP_SUMMARY
+      - name: 📋 Generate configuration report
+        run: |
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "## 🏗️ Configuration Security Scan" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           
-      #     if [ -f checkov-report/results_github_failed_only.md ]; then
-      #       if grep -q "Failed" checkov-report/results_github_failed_only.md; then
-      #         cat checkov-report/results_github_failed_only.md >> $GITHUB_STEP_SUMMARY
-      #       else
-      #         echo "✅ Sin problemas detectados" >> $GITHUB_STEP_SUMMARY
-      #       fi
-      #     fi
+          if [ -f checkov-report/results_github_failed_only.md ]; then
+            if grep -q "Failed" checkov-report/results_github_failed_only.md; then
+              cat checkov-report/results_github_failed_only.md >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ Sin problemas detectados" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
 
       # # ============ LIMPIEZA DE RECURSOS ============
       # - name: stp-CleanResources
