@@ -187,6 +187,9 @@ jobs:
           config_file: ./config/checkov/checkov.yaml
           output_format: github_failed_only
 
+      - name: 📋 list files
+        run: |
+          ls -la
 
       - name: 📋 Generate configuration report
         run: |
@@ -216,7 +219,7 @@ jobs:
           if [ -f trivy-results.json ]; then
             TRIVY_ISSUES=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL" or .Severity=="HIGH")] | length' ./trivy-report/trivy-results.json 2>/dev/null || echo 0)
           fi
-          
+
           # Count Checkov issues
           CHECKOV_ISSUES=0
           if [ -f results_github_failed_only.md ]; then
