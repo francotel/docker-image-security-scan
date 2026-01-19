@@ -34,9 +34,6 @@ on:
 
 env:
   # Security scanning configuration
-  TRIVY_VERSION: "0.51.1"
-  CHECKOV_VERSION: "3.2.497"
-  SCAN_TIMEOUT_MINUTES: 10
   FAIL_ON_CRITICAL: true
   FAIL_ON_HIGH: true
 
@@ -86,98 +83,98 @@ jobs:
             com.github.commit=${{ github.sha }}
             com.scan.purpose=security-validation
 
-      # # ============ VULNERABILITY SCANNING ============
-      # - name: 🔍 Run Trivy vulnerability scan
-      #   uses: aquasecurity/trivy-action@master
-      #   id: trivy-scan
-      #   with:
-      #     image-ref: local-scan:${{ env.IMAGE_TAG_SHA }}
-      #     format: 'json'
-      #     output: 'trivy-results.json'
-      #     trivy-config: './config/trivy/trivy.yaml' 
-      #     ignore-unfixed: false
-      #     timeout: '300s'
+      # ============ VULNERABILITY SCANNING ============
+      - name: 🔍 Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        id: trivy-scan
+        with:
+          image-ref: local-scan:${{ env.IMAGE_TAG_SHA }}
+          format: 'json'
+          output: 'trivy-results.json'
+          trivy-config: './config/trivy/trivy.yaml' 
+          ignore-unfixed: false
+          timeout: '300s'
 
-      # - name: 📊 Generate vulnerability report
-      #   run: |
-      #     echo "## 🔍 Trivy Vulnerability Scan Results" >> $GITHUB_STEP_SUMMARY
-      #     echo "" >> $GITHUB_STEP_SUMMARY
+      - name: 📊 Generate vulnerability report
+        run: |
+          echo "## 🔍 Trivy Vulnerability Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
-      #     if [ -f trivy-results.json ]; then
-      #       TOTAL=$(jq '[.Results[] | (.Vulnerabilities // []), (.Misconfigurations // []), (.Secrets // [])] | flatten | length' trivy-results.json || echo 0)
-      #       CRIT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json || echo 0)
-      #       HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json || echo 0)
-      #       MED=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-results.json || echo 0)
-      #       LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-results.json || echo 0)
-      #       MIS=$(jq '[.Results[]?.Misconfigurations[]?] | length' trivy-results.json || echo 0)
-      #       SECRETS=$(jq '[.Results[]?.Secrets[]?] | length' trivy-results.json || echo 0)
+          if [ -f trivy-results.json ]; then
+            TOTAL=$(jq '[.Results[] | (.Vulnerabilities // []), (.Misconfigurations // []), (.Secrets // [])] | flatten | length' trivy-results.json || echo 0)
+            CRIT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json || echo 0)
+            HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json || echo 0)
+            MED=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-results.json || echo 0)
+            LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-results.json || echo 0)
+            MIS=$(jq '[.Results[]?.Misconfigurations[]?] | length' trivy-results.json || echo 0)
+            SECRETS=$(jq '[.Results[]?.Secrets[]?] | length' trivy-results.json || echo 0)
 
-      #       echo "### 📈 Security Summary" >> $GITHUB_STEP_SUMMARY
-      #       echo "" >> $GITHUB_STEP_SUMMARY
-      #       echo "| Severity | Count | Status |" >> $GITHUB_STEP_SUMMARY
-      #       echo "|----------|-------|--------|" >> $GITHUB_STEP_SUMMARY
-      #       [ "$CRIT" -gt 0 ] && echo "| Vulnerabilities | 🔴 CRITICAL | $CRIT |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$HIGH" -gt 0 ] && echo "| Vulnerabilities | 🟠 HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$MED" -gt 0 ] && echo "| Vulnerabilities | 🟡 MEDIUM | $MED |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$LOW" -gt 0 ] && echo "| Vulnerabilities | 🔵 LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$MIS" -gt 0 ] && echo "| MISCONFIGURATIONS | - | $MIS |" >> $GITHUB_STEP_SUMMARY
-      #       [ "$SECRETS" -gt 0 ] && echo "| Secrets | - | $SECRETS |" >> $GITHUB_STEP_SUMMARY
-      #       echo "| **Total** | - | **$TOTAL** |" >> $GITHUB_STEP_SUMMARY
-      #       echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📈 Security Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+            [ "$CRIT" -gt 0 ] && echo "| Vulnerabilities | 🔴 CRITICAL | $CRIT |" >> $GITHUB_STEP_SUMMARY
+            [ "$HIGH" -gt 0 ] && echo "| Vulnerabilities | 🟠 HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            [ "$MED" -gt 0 ] && echo "| Vulnerabilities | 🟡 MEDIUM | $MED |" >> $GITHUB_STEP_SUMMARY
+            [ "$LOW" -gt 0 ] && echo "| Vulnerabilities | 🔵 LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
+            [ "$MIS" -gt 0 ] && echo "| MISCONFIGURATIONS | - | $MIS |" >> $GITHUB_STEP_SUMMARY
+            [ "$SECRETS" -gt 0 ] && echo "| Secrets | - | $SECRETS |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Total** | - | **$TOTAL** |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
 
-      #       echo "### 📋 Scan Information" >> $GITHUB_STEP_SUMMARY
-      #       echo "- **Scan Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-      #       echo "- **Source Branch:** ${{ github.head_ref || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-      #       echo "- **Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+            echo "### 📋 Scan Information" >> $GITHUB_STEP_SUMMARY
+            echo "- **Scan Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+            echo "- **Source Branch:** ${{ github.head_ref || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
 
-      #       if [ "$TOTAL" -eq 0 ]; then
-      #         echo "" >> $GITHUB_STEP_SUMMARY
-      #         echo "✅ **No security vulnerabilities detected.**" >> $GITHUB_STEP_SUMMARY
-      #       fi
-      #     else
-      #       echo "⚠️ **No Trivy results found**" >> $GITHUB_STEP_SUMMARY
-      #     fi
+            if [ "$TOTAL" -eq 0 ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **No security vulnerabilities detected.**" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ **No Trivy results found**" >> $GITHUB_STEP_SUMMARY
+          fi
 
-      # - name: List Vulnerabilities
-      #   run: |
-      #     echo "### 🔍 Vulnerability Details" >> $GITHUB_STEP_SUMMARY
-      #     echo "" >> $GITHUB_STEP_SUMMARY
+      - name: List Vulnerabilities
+        run: |
+          echo "### 🔍 Vulnerability Details" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           
-      #     if [ -f trivy-results.json ]; then
-      #       # CRITICAL Vulnerabilities
-      #       CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json || echo 0)
-      #       if [ "$CRITICAL_COUNT" -gt 0 ]; then
-      #         echo "#### 🔴 Critical Vulnerabilities ($CRITICAL_COUNT)" >> $GITHUB_STEP_SUMMARY
-      #         echo "" >> $GITHUB_STEP_SUMMARY
-      #         echo "| CVE | Package | Version | Fixed Version |" >> $GITHUB_STEP_SUMMARY
-      #         echo "|-----|---------|---------|---------------|" >> $GITHUB_STEP_SUMMARY
-      #         jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL") | "| \(.VulnerabilityID) | `\(.PkgName)` | `\(.InstalledVersion)` | `\(.FixedVersion // "Not available")` |"' trivy-results.json 2>/dev/null | head -15 >> $GITHUB_STEP_SUMMARY
-      #         echo "" >> $GITHUB_STEP_SUMMARY
-      #       fi
+          if [ -f trivy-results.json ]; then
+            # CRITICAL Vulnerabilities
+            CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json || echo 0)
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "#### 🔴 Critical Vulnerabilities ($CRITICAL_COUNT)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "| CVE | Package | Version | Fixed Version |" >> $GITHUB_STEP_SUMMARY
+              echo "|-----|---------|---------|---------------|" >> $GITHUB_STEP_SUMMARY
+              jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL") | "| \(.VulnerabilityID) | `\(.PkgName)` | `\(.InstalledVersion)` | `\(.FixedVersion // "Not available")` |"' trivy-results.json 2>/dev/null | head -15 >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
             
-      #       # HIGH Vulnerabilities
-      #       HIGH_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json || echo 0)
-      #       if [ "$HIGH_COUNT" -gt 0 ]; then
-      #         echo "#### 🟠 High Vulnerabilities ($HIGH_COUNT)" >> $GITHUB_STEP_SUMMARY
-      #         echo "" >> $GITHUB_STEP_SUMMARY
-      #         echo "| CVE | Package | Version | Fixed Version |" >> $GITHUB_STEP_SUMMARY
-      #         echo "|-----|---------|---------|---------------|" >> $GITHUB_STEP_SUMMARY
-      #         jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH") | "| \(.VulnerabilityID) | `\(.PkgName)` | `\(.InstalledVersion)` | `\(.FixedVersion // "Not available")` |"' trivy-results.json 2>/dev/null | head -10 >> $GITHUB_STEP_SUMMARY
-      #         echo "" >> $GITHUB_STEP_SUMMARY
-      #       fi
+            # HIGH Vulnerabilities
+            HIGH_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json || echo 0)
+            if [ "$HIGH_COUNT" -gt 0 ]; then
+              echo "#### 🟠 High Vulnerabilities ($HIGH_COUNT)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "| CVE | Package | Version | Fixed Version |" >> $GITHUB_STEP_SUMMARY
+              echo "|-----|---------|---------|---------------|" >> $GITHUB_STEP_SUMMARY
+              jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH") | "| \(.VulnerabilityID) | `\(.PkgName)` | `\(.InstalledVersion)` | `\(.FixedVersion // "Not available")` |"' trivy-results.json 2>/dev/null | head -10 >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
             
-      #       if [ "$CRITICAL_COUNT" -eq 0 ] && [ "$HIGH_COUNT" -eq 0 ]; then
-      #         echo "✅ No critical or high vulnerabilities found." >> $GITHUB_STEP_SUMMARY
-      #       fi
+            if [ "$CRITICAL_COUNT" -eq 0 ] && [ "$HIGH_COUNT" -eq 0 ]; then
+              echo "✅ No critical or high vulnerabilities found." >> $GITHUB_STEP_SUMMARY
+            fi
             
-      #       # Additional statistics
-      #       echo "#### 📈 Statistics" >> $GITHUB_STEP_SUMMARY
-      #       echo "- **Total CVEs:** $(jq '[.Results[]?.Vulnerabilities[]? | .VulnerabilityID] | length' trivy-results.json 2>/dev/null || echo 0)" >> $GITHUB_STEP_SUMMARY
-      #       echo "- **Affected packages:** $(jq '.Results[]?.Vulnerabilities[]? | .PkgName' trivy-results.json 2>/dev/null | sort -u | wc -l)" >> $GITHUB_STEP_SUMMARY
-      #       echo "- **Fixes available:** $(jq '[.Results[]?.Vulnerabilities[]? | select(.FixedVersion != null)] | length' trivy-results.json 2>/dev/null || echo 0)" >> $GITHUB_STEP_SUMMARY
-      #     else
-      #       echo "⚠️ Results file not found" >> $GITHUB_STEP_SUMMARY
-      #     fi
+            # Additional statistics
+            echo "#### 📈 Statistics" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total CVEs:** $(jq '[.Results[]?.Vulnerabilities[]? | .VulnerabilityID] | length' trivy-results.json 2>/dev/null || echo 0)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Affected packages:** $(jq '.Results[]?.Vulnerabilities[]? | .PkgName' trivy-results.json 2>/dev/null | sort -u | wc -l)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Fixes available:** $(jq '[.Results[]?.Vulnerabilities[]? | select(.FixedVersion != null)] | length' trivy-results.json 2>/dev/null || echo 0)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Results file not found" >> $GITHUB_STEP_SUMMARY
+          fi
 
       # ============ CONFIGURATION SCANNING ============
       - name: 🏗️ Run Checkov configuration scan
@@ -194,92 +191,98 @@ jobs:
       - name: 📋 Generate configuration report
         run: |
           echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "## 🏗️ Configuration Security Scan" >> $GITHUB_STEP_SUMMARY
+          echo "## 🏗️ Checkov Configuration Security Scan" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ -f checkov-report/results_github_failed_only.md ]; then
-            if grep -q "Failed" checkov-report/results_github_failed_only.md; then
-              cat checkov-report/results_github_failed_only.md >> $GITHUB_STEP_SUMMARY
+          if [ -f results_github_failed_only.md ]; then
+            if grep -q "Failed" results_github_failed_only.md; then
+              cat results_github_failed_only.md >> $GITHUB_STEP_SUMMARY
             else
-              echo "✅ Sin problemas detectados" >> $GITHUB_STEP_SUMMARY
+              echo "✅ No critical or high vulnerabilities found." >> $GITHUB_STEP_SUMMARY
             fi
           fi
 
-      # # ============ LIMPIEZA DE RECURSOS ============
-      # - name: stp-CleanResources
-      #   if: always()
-      #   run: |
-      #     echo "🧹 Limpiando archivos temporales..."
-      #     sudo rm -rf "${{ github.workspace }}/checkov-report" 2>/dev/null || true
-      #     sudo rm -rf "${{ github.workspace }}/trivy-report" 2>/dev/null || true
+      # ============ SECURITY VALIDATION ============
+      - name: ⚖️ Validate security results
+        id: security-validation
+        run: |
+          echo "🔒 Security Validation Check"
+          echo "============================"
+          
+          URL_SUMMARY="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#summary"
+          
+          # Count Trivy issues
+          TRIVY_ISSUES=0
+          if [ -f trivy-results.json ]; then
+            TRIVY_ISSUES=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL" or .Severity=="HIGH")] | length' ./trivy-report/trivy-results.json 2>/dev/null || echo 0)
+          fi
+          
+          # Count Checkov issues
+          CHECKOV_ISSUES=0
+          if [ -f results_github_failed_only.md ]; then
+            FAILED=$(grep -o "Failed Checks: [0-9]*" results_github_failed_only.md | head -1 | grep -o "[0-9]*" || echo 0)
+            CHECKOV_ISSUES=$FAILED
+          fi
+          
+          TOTAL_ISSUES=$((TRIVY_ISSUES + CHECKOV_ISSUES))
+          
+          if [ "$TOTAL_ISSUES" -gt 0 ]; then
+            echo ""
+            echo "❌ **WORKFLOW FAILED**"
+            echo ""
+            echo "**Issues detected:**"
+            echo ""
+            [ "$TRIVY_ISSUES" -gt 0 ] && echo "- 🐳 **Trivy:** $TRIVY_ISSUES critical/high vulnerabilities"
+            [ "$CHECKOV_ISSUES" -gt 0 ] && echo "- 🏗️ **Checkov:** $CHECKOV_ISSUES failed checks"
+            echo ""
+            echo "**Required actions:**"
+            echo "1. 📋 Review the full report: $URL_SUMMARY"
+            echo "2. 🔧 Fix the identified issues"
+            echo "3. 🔄 Run the workflow again"
+            echo ""
+            echo "🔗 Direct link to Summary:"
+            echo "$URL_SUMMARY"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ **ALL VALIDATIONS PASSED**"
+          echo "🚀 Workflow approved - can continue"
+          echo "🚀 Proceeding with image publication..."
 
-      # - name: stp-CleanUpImages
-      #   working-directory: ./docker/${{ inputs.image }}
-      #   run: |
-      #     echo "🗑️ Eliminando imágenes locales..."
-      #     docker rmi -f ${{ inputs.acr_name }}.azurecr.io/nginx-${{ inputs.image }}:${{ env.IMAGE_TAG_SHA }} 2>/dev/null || echo "⚠️ No se pudo eliminar la imagen sha"
-      #     docker rmi -f ${{ inputs.acr_name }}.azurecr.io/nginx-${{ inputs.image }}:${{ env.IMAGE_TAG_ENV }} 2>/dev/null || echo "⚠️ No se pudo eliminar la imagen latest"
+      # ============ PUSH TO AWS ECR ============
+      - name: 🚀 Build and push to AWS ECR
+        if: success() && steps.security-validation.outcome == 'success'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ inputs.dockerfile_path }}
+          push: false
+          no-cache: true
+          tags: |
+            ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
+            ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_ENV }}
+          labels: |
+            com.github.repository=${{ github.repository }}
+            com.github.commit=${{ github.sha }}
+            com.github.workflow=${{ github.workflow }}
+            com.build.timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            com.environment=${{ inputs.target_env }}
+            com.aws.region=${{ secrets.AWS_REGION }}
 
-      # # ============ VALIDACIÓN FINAL ============
-      # - name: stp-BlockSummaryFailures
-      #   run: |
-      #     echo "🔒 Validación Final de Seguridad"
-      #     echo "================================"
+      # ============ CLEANUP ============
+      - name: 🧹 Cleanup temporary resources
+        if: always()
+        run: |
+          echo "🧼 Cleaning up temporary files..."
           
-      #     URL_SUMMARY="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#summary"
+          # Remove scan files
+          rm -f trivy-results.json 2>/dev/null || true
+          rm -f results_github_failed_only.md 2>/dev/null || true
           
-      #     # Contar problemas de Trivy
-      #     PROBLEMAS_TRIVY=0
-      #     if [ -f trivy-report/trivy-results.json ]; then
-      #       PROBLEMAS_TRIVY=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL" or .Severity=="HIGH")] | length' ./trivy-report/trivy-results.json 2>/dev/null || echo 0)
-      #     fi
+          # Remove local images
+          docker rmi -f local-scan:${{ env.COMMIT_TAG }} 2>/dev/null || true
+          docker rmi -f ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
+          docker rmi -f ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_ENV }}
           
-      #     # Contar problemas de Checkov
-      #     PROBLEMAS_CHECKOV=0
-      #     if [ -f checkov-report/results_github_failed_only.md ]; then
-      #       FALLIDOS=$(grep -o "Failed Checks: [0-9]*" checkov-report/results_github_failed_only.md | head -1 | grep -o "[0-9]*" || echo 0)
-      #       PROBLEMAS_CHECKOV=$FALLIDOS
-      #     fi
-          
-      #     TOTAL_PROBLEMAS=$((PROBLEMAS_TRIVY + PROBLEMAS_CHECKOV))
-          
-      #     if [ "$TOTAL_PROBLEMAS" -gt 0 ]; then
-      #       echo ""
-      #       echo "❌ **WORKFLOW FALLIDO**"
-      #       echo ""
-      #       echo "**Problemas detectados:**"
-      #       echo ""
-      #       [ "$PROBLEMAS_TRIVY" -gt 0 ] && echo "- 🐳 **Trivy:** $PROBLEMAS_TRIVY vulnerabilidades críticas/altas"
-      #       [ "$PROBLEMAS_CHECKOV" -gt 0 ] && echo "- 🏗️ **Checkov:** $PROBLEMAS_CHECKOV checks fallidos"
-      #       echo ""
-      #       echo "**Acciones requeridas:**"
-      #       echo "1. 📋 Revisa el reporte completo: $URL_SUMMARY"
-      #       echo "2. 🔧 Corrige los problemas identificados"
-      #       echo "3. 🔄 Vuelve a ejecutar el workflow"
-      #       echo ""
-      #       echo "🔗 Enlace directo al Summary:"
-      #       echo "$URL_SUMMARY"
-      #       exit 1
-      #     fi
-          
-      #     echo ""
-      #     echo "✅ **TODAS LAS VALIDACIONES PASARON**"
-      #     echo "🚀 Workflow aprobado - puede continuar"
-      #     echo "🚀 Procediendo con la publicación de la imagen..."
-
-      # # ============ PUBLICACION DE IMAGEN ============
-      # - name: stp-PublishDockerImage
-      #   if: success()
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     file: docker/${{ inputs.image }}/Dockerfile
-      #     push: false
-      #     no-cache: true
-      #     tags: |
-      #       ${{ inputs.acr_name }}.azurecr.io/nginx-${{ inputs.image }}:${{ env.IMAGE_TAG_SHA }}
-      #       ${{ inputs.acr_name }}.azurecr.io/nginx-${{ inputs.image }}:${{ env.IMAGE_TAG_ENV }}
-      #     labels: |
-      #       org.opencontainers.image.source=https://github.com/${{ github.repository }}
-      #       org.opencontainers.image.revision=${{ github.sha }}
-      #       org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-      #       org.opencontainers.image.version=${{ env.IMAGE_TAG_ENV }}
+          echo "✅ Cleanup completed"
