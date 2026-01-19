@@ -261,8 +261,8 @@ jobs:
           push: false
           no-cache: true
           tags: |
-            ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
-            ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_ENV }}
+            ${{ inputs.aws_ecr_registry }}/${{ inputs.image }}:${{ env.IMAGE_TAG_SHA }}
+            ${{ inputs.aws_ecr_registry }}/${{ inputs.image }}:${{ env.IMAGE_TAG_ENV }}
           labels: |
             com.github.repository=${{ github.repository }}
             com.github.commit=${{ github.sha }}
