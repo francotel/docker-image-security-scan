@@ -187,7 +187,7 @@ jobs:
           directory: .
           dockerfile_path: ${{ inputs.dockerfile_path }}
           framework: dockerfile
-          config_file: /config/checkov/checkov.yaml
+          config_file: ./config/checkov/checkov.yaml
           output_format: github_failed_only
           #output_file_path: .
 
