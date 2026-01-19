@@ -280,7 +280,7 @@ jobs:
           
           # Remove local images
           docker rmi -f local-scan:${{ env.COMMIT_TAG }} 2>/dev/null || true
-          docker rmi -f ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
-          docker rmi -f ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_ENV }}
+          docker rmi -f $${{ secrets.AWS_ECR_URL }}/${{ inputs.image }}:${{ env.IMAGE_TAG_SHA }}
+          docker rmi -f ${{ secrets.AWS_ECR_URL }}/${{ inputs.image }}:${{ env.IMAGE_TAG_ENV }}
           
           echo "✅ Cleanup completed"
