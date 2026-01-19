@@ -186,6 +186,7 @@ jobs:
           framework: dockerfile
           config_file: ./config/checkov/checkov.yaml
           output_format: github_failed_only
+          output_file_path: .
 
       - name: 📋 list files
         run: |
@@ -220,6 +221,8 @@ jobs:
             TRIVY_ISSUES=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL" or .Severity=="HIGH")] | length' ./trivy-report/trivy-results.json 2>/dev/null || echo 0)
           fi
 
+          echo $TRIVY_ISSUES
+
           # Count Checkov issues
           CHECKOV_ISSUES=0
           if [ -f results_github_failed_only.md ]; then
@@ -228,6 +231,7 @@ jobs:
           fi
           
           TOTAL_ISSUES=$((TRIVY_ISSUES + CHECKOV_ISSUES))
+          echo $TOTAL_ISSUES
           
           if [ "$TOTAL_ISSUES" -gt 0 ]; then
             echo ""
@@ -254,24 +258,24 @@ jobs:
           echo "🚀 Proceeding with image publication..."
 
       # ============ PUSH TO AWS ECR ============
-      - name: 🚀 Build and push to AWS ECR
-        if: success() && steps.security-validation.outcome == 'success'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ${{ inputs.dockerfile_path }}
-          push: false
-          no-cache: true
-          tags: |
-            ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
-            ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_ENV }}
-          labels: |
-            com.github.repository=${{ github.repository }}
-            com.github.commit=${{ github.sha }}
-            com.github.workflow=${{ github.workflow }}
-            com.build.timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-            com.environment=${{ inputs.target_env }}
-            com.aws.region=${{ secrets.AWS_REGION }}
+      # - name: 🚀 Build and push to AWS ECR
+      #   if: success() && steps.security-validation.outcome == 'success'
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: ${{ inputs.dockerfile_path }}
+      #     push: false
+      #     no-cache: true
+      #     tags: |
+      #       ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
+      #       ${{ env.ECR_IMAGE_NAME }}:${{ env.IMAGE_TAG_ENV }}
+      #     labels: |
+      #       com.github.repository=${{ github.repository }}
+      #       com.github.commit=${{ github.sha }}
+      #       com.github.workflow=${{ github.workflow }}
+      #       com.build.timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+      #       com.environment=${{ inputs.target_env }}
+      #       com.aws.region=${{ secrets.AWS_REGION }}
 
       # ============ CLEANUP ============
       - name: 🧹 Cleanup temporary resources
